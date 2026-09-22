@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Production JS Minifier & Compressor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Standalone Browser Terser Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/terser/5.19.2/bundle.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #090a0f;
+      --surface: #11141d;
+      --border: #1f2638;
+      --border-focus: #3b82f6;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --text: #f1f5f9;
+      --text-muted: #8492a6;
+      --code-bg: #07090e;
+      --success: #10b981;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1150px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .brand p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 0.2rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .stat-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+    }
+
+    .stat-pill b {
+      color: var(--success);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 860px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .editor-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .editor-card:focus-within {
+      border-color: var(--border-focus);
+    }
+
+    .card-header {
+      padding: 0.7rem 1rem;
+      background: rgba(255, 255, 255, 0.015);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header span {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      width: 100%;
+      height: 440px;
+      background: var(--code-bg);
+      border: none;
+      color: #e2e8f0;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      outline: none;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: #334155;
+    }
+
+    .btn-success {
+      background: rgba(16, 185, 129, 0.15) !important;
+      border-color: rgba(16, 185, 129, 0.4) !important;
+      color: #34d399 !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="brand">
+      <h1>Production JavaScript Minifier</h1>
+      <p>Original functionality intact rakhte hue code ko ultra-short, variable-mangled aur fast banata hai.</p>
+    </div>
+    <div class="stats">
+      <div class="stat-pill" id="size-stat">Saved: <b>0%</b></div>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- Raw Input -->
+    <div class="editor-card">
+      <div class="card-header">
+        <span>Raw JS (Uncompressed)</span>
+        <button class="btn" onclick="loadSample()">Load Sample</button>
+      </div>
+      <textarea id="raw-js" spellcheck="false" placeholder="// Paste your heavy JavaScript code here..."></textarea>
+    </div>
+
+    <!-- Output -->
+    <div class="editor-card">
+      <div class="card-header">
+        <span>Minified Output (Fast Loadable)</span>
+        <button id="copy-btn" class="btn" onclick="copyResult()">Copy Minified</button>
+      </div>
+      <textarea id="out-js" readonly spellcheck="false" placeholder="Minified code will appear here instantly..."></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+  const rawInput = document.getElementById('raw-js');
+  const outArea = document.getElementById('out-js');
+  const sizeStat = document.getElementById('size-stat');
+  let debounceTimer;
+
+  // Real-time input listener
+  rawInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(runMinification, 120);
+  });
+
+  // Fallback Lightweight Regex Compressor (Agar CDN offline ho ya slow ho)
+  function fallbackMinify(code) {
+    return code
+      .replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1') // comments
+      .replace(/\s+/g, ' ')                                    // extra whitespace
+      .replace(/\s*([{};:,=+\-*/><&|()])\s*/g, '$1')          // spaces around operators
+      .trim();
+  }
+
+  async function runMinification() {
+    const raw = rawInput.value;
+    if (!raw.trim()) {
+      outArea.value = '';
+      sizeStat.innerHTML = 'Saved: <b>0%</b>';
+      return;
+    }
+
+    try {
+      // Browser CDN compatibility check: 'Terser' ya 'terser'
+      const engine = window.Terser || window.terser;
+
+      if (engine && typeof engine.minify === 'function') {
+        const result = await engine.minify(raw, {
+          mangle: {
+            toplevel: true
+          },
+          compress: {
+            drop_console: false,
+            passes: 2
+          },
+          format: {
+            comments: false
+          }
+        });
+
+        if (result && result.code) {
+          outArea.value = result.code;
+          calculateStats(raw, result.code);
+          return;
+        }
+      }
+
+      // Agar CDN load hone me waqt le raha ho: Fallback active
+      const fallbackCode = fallbackMinify(raw);
+      outArea.value = fallbackCode;
+      calculateStats(raw, fallbackCode);
+
+    } catch (err) {
+      outArea.value = `// Syntax Error in your JS:\n${err.message}`;
+    }
+  }
+
+  function calculateStats(original, minified) {
+    const originalBytes = new Blob([original]).size;
+    const minifiedBytes = new Blob([minified]).size;
+    const savedPercent = Math.max(0, Math.round(((originalBytes - minifiedBytes) / originalBytes) * 100));
+    sizeStat.innerHTML = `Saved: <b>${savedPercent}%</b> (${minifiedBytes} bytes)`;
+  }
+
+  function copyResult() {
+    if (!outArea.value || outArea.value.startsWith('// Syntax Error')) return;
+
+    outArea.focus();
+    outArea.select();
+    try {
+      navigator.clipboard.writeText(outArea.value);
+    } catch (e) {
+      document.execCommand('copy');
+    }
+
+    const btn = document.getElementById('copy-btn');
+    const prev = btn.innerText;
+    btn.innerText = "Copied! ✓";
+    btn.classList.add('btn-success');
+    setTimeout(() => {
+      btn.innerText = prev;
+      btn.classList.remove('btn-success');
+    }, 1400);
+  }
+
+  function loadSample() {
+    rawInput.value = `// Function to handle interactive button animations
+function triggerBananaBounceAnimation(targetButtonElement) {
+    var animationClassName = "banana-animate";
+    
+    // Add class for bounce effect
+    targetButtonElement.classList.add(animationClassName);
+    
+    // Cleanup timeout after animation completes
+    setTimeout(function() {
+        targetButtonElement.classList.remove(animationClassName);
+        console.log("Animation completed for:", targetButtonElement);
+    }, 500);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    var allButtons = document.querySelectorAll(".btn");
+    for (var i = 0; i < allButtons.length; i++) {
+        allButtons[i].addEventListener("click", function(event) {
+            event.preventDefault();
+            triggerBananaBounceAnimation(this);
+        });
+    }
+});`;
+    runMinification();
+  }
+
+  // Initial load check
+  window.addEventListener('DOMContentLoaded', () => {
+    if (rawInput.value) runMinification();
+  });
+</script>
+
+</body>
+</html>
