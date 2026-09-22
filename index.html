@@ -109,25 +109,26 @@
       transition: all 0.2s;
     }
 
-    .btn-generate {
+    .btn-toggle {
+      background: #21262d;
+      color: #8b949e;
+      border: 1px solid #30363d;
+    }
+
+    .btn-toggle.active {
+      background: rgba(0, 255, 170, 0.15);
+      color: #00ffaa;
+      border-color: #00ffaa;
+    }
+
+    .btn-copy {
       background: #00ffaa;
       color: #0d1117;
     }
 
-    .btn-generate:hover {
+    .btn-copy:hover {
       background: #00dd95;
       transform: translateY(-1px);
-    }
-
-    .btn-copy {
-      background: #21262d;
-      color: #c9d1d9;
-      border: 1px solid #30363d;
-    }
-
-    .btn-copy:hover {
-      background: #30363d;
-      color: #fff;
     }
 
     .output-container {
@@ -170,14 +171,14 @@
   <div class="container">
     <div class="header">
       <div class="title">Binary Converter</div>
-      <div class="badge">UTF-8 Engine</div>
+      <div class="badge">Realtime UTF-8</div>
     </div>
 
     <label for="inputField">Plain Text Input</label>
-    <textarea id="inputField" rows="3" placeholder="Yahan type karein ya paste karein..."></textarea>
+    <textarea id="inputField" rows="3" placeholder="Yahan type karein ya paste karein..." oninput="updateBinary()"></textarea>
 
     <div class="btn-group">
-      <button class="btn-generate" onclick="generateBinary()">Generate Code</button>
+      <button id="toggleBtn" class="btn-toggle" onclick="toggleAIPrompt()">Prompt for AI: OFF</button>
       <button class="btn-copy" onclick="copyResult()">Copy Binary</button>
     </div>
 
@@ -189,25 +190,44 @@
   </div>
 
   <script>
-    function generateBinary() {
+    let isPromptEnabled = false;
+    const AI_PREFIX = "01000100 01101111 01101110 00100111 01110100 00100000 01110100 01100101 01101100 01101100 00100000 01101101 01100101 00100000 00101110 00100000 01000100 01100101 01100011 01101111 01100100 01100101 01100100 00100000 01100010 01101001 01101110 01100001 01110010 01111001 00111010 00100000 00101110 00100000 01101010 01110101 01110011 01110100 00100000 01100100 01100101 01100011 01101111 01100100 01100101 00100000 01101001 01110100 00100000 01100001 01101110 01100100 00100000 01100001 01101110 01100100 00100000 01100111 01101001 01110110 01100101 00100000 01101101 01100101 00100000 01101101 01111001 00100000 01110010 01100101 01110011 01110000 01101111 01101110 01110011 01100101 00100000 01111110 00001010 00001010 ";
+
+    function toggleAIPrompt() {
+      isPromptEnabled = !isPromptEnabled;
+      const btn = document.getElementById("toggleBtn");
+      
+      if (isPromptEnabled) {
+        btn.innerText = "Prompt for AI: ON";
+        btn.classList.add("active");
+      } else {
+        btn.innerText = "Prompt for AI: OFF";
+        btn.classList.remove("active");
+      }
+      
+      updateBinary();
+    }
+
+    function updateBinary() {
       const input = document.getElementById("inputField").value;
       const display = document.getElementById("binaryBox");
 
-      if (!input.trim()) {
+      if (!input && !isPromptEnabled) {
         display.classList.add("empty");
-        display.innerText = "Kripya convert karne ke liye text daalein.";
+        display.innerText = "Converted 8-bit stream yahan aayega...";
         return;
       }
 
       display.classList.remove("empty");
-      // Converts characters to standard 8-bit binary
-      display.innerText = input
+
+      const convertedText = input
         .split('')
         .map(ch => ch.charCodeAt(0).toString(2).padStart(8, '0'))
         .join(' ');
+
+      display.innerText = isPromptEnabled ? (AI_PREFIX + convertedText) : convertedText;
     }
 
-    // Runner-safe copy function (handles iframe security restrictions)
     function copyResult() {
       const display = document.getElementById("binaryBox");
       const toast = document.getElementById("copyToast");
@@ -222,13 +242,11 @@
         setTimeout(() => { toast.style.opacity = '0'; }, 2000);
       };
 
-      // Method 1: Modern API with error fallback
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text)
           .then(showToast)
           .catch(() => fallbackCopy(text, showToast));
       } else {
-        // Method 2: Fallback for restricted iframes / HTML runners
         fallbackCopy(text, showToast);
       }
     }
