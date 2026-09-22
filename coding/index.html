@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dual Binary Compiler (HTML & App.js) - Fixed</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131b2e;
+      --border: #1e293b;
+      --accent-html: #38bdf8;
+      --accent-js: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 2rem 1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    header {
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #fff;
+    }
+
+    header p {
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .html-title { color: var(--accent-html); }
+    .js-title { color: var(--accent-js); }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      width: 100%;
+      background: #06080f;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #e2e8f0;
+      padding: 0.75rem;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 0.82rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #64748b;
+    }
+
+    .btn {
+      border: none;
+      padding: 0.75rem 1rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn:hover { opacity: 0.9; }
+
+    .btn-html { background: var(--accent-html); color: #04101e; }
+    .btn-js { background: var(--accent-js); color: #1e1104; }
+
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    .btn-action {
+      background: #1e293b;
+      color: #fff;
+      border: 1px solid #334155;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-action:hover { background: #334155; }
+    .btn-download { background: var(--success); border-color: var(--success); }
+
+    .output-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <header>
+    <h1>Dual Binary Client-Side Compiler (Fixed)</h1>
+    <p>Client-side binary compiler jo DOM timing aur dynamic script execution flawlessly handle karta hai.</p>
+  </header>
+
+  <div class="grid-container">
+    
+    <!-- ================= SECTION 1: HTML RUNNER ================= -->
+    <div class="section-card">
+      <div class="section-header html-title">
+        <span>🌐</span> Section 1: HTML Binary Runner
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        Aapka poora HTML page binary se decode hoga aur document level par inject hokar app.js ko trigger karega.
+      </p>
+
+      <div>
+        <label>Input: Raw HTML Code</label>
+        <textarea id="in-html" style="height: 180px;" placeholder="Paste entire index.html code here..."></textarea>
+      </div>
+
+      <button class="btn btn-html" onclick="generateHtmlRuntime()">Compile HTML Runner</button>
+
+      <div class="output-group">
+        <div class="flex-between">
+          <label>Output: Executable `index.html` File</label>
+          <div class="btn-group">
+            <button class="btn-action" onclick="copyText('out-html-file', this)">Copy File</button>
+            <button class="btn-action btn-download" onclick="downloadBlob('out-html-file', 'index.html', 'text/html')">Download</button>
+          </div>
+        </div>
+        <textarea id="out-html-file" readonly style="height: 180px;" placeholder="Output file code will appear here..."></textarea>
+      </div>
+    </div>
+
+    <!-- ================= SECTION 2: APP.JS RUNNER ================= -->
+    <div class="section-card">
+      <div class="section-header js-title">
+        <span>⚡</span> Section 2: app.js Binary Runner
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        JavaScript logic binary se decode hoga aur bina DOMContentLoaded race condition ke buttons par listeners bind karega.
+      </p>
+
+      <div>
+        <label>Input: Raw JavaScript Code</label>
+        <textarea id="in-js" style="height: 180px;" placeholder="Paste app.js code here..."></textarea>
+      </div>
+
+      <button class="btn btn-js" onclick="generateJsRuntime()">Compile app.js Runner</button>
+
+      <div class="output-group">
+        <div class="flex-between">
+          <label>Output: Executable `app.js` File</label>
+          <div class="btn-group">
+            <button class="btn-action" onclick="copyText('out-js-file', this)">Copy File</button>
+            <button class="btn-action btn-download" onclick="downloadBlob('out-js-file', 'app.js', 'application/javascript')">Download</button>
+          </div>
+        </div>
+        <textarea id="out-js-file" readonly style="height: 180px;" placeholder="Output app.js code will appear here..."></textarea>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // UTF-8 Safe Binary Converter
+  function toBinary(str) {
+    const bytes = new TextEncoder().encode(str);
+    return Array.from(bytes).map(b => b.toString(2).padStart(8, '0')).join(' ');
+  }
+
+  // 1. Generate HTML Binary Runner (Fix: Native Document Write / Replace)
+  function generateHtmlRuntime() {
+    const rawHtml = document.getElementById('in-html').value;
+    if (!rawHtml.trim()) {
+      alert("Please HTML code paste karein!");
+      return;
+    }
+
+    const binaryPayload = toBinary(rawHtml);
+
+    const fullHtmlTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Loading...</title>
+</head>
+<body>
+  <script>
+    (function () {
+      const binaryPayload = "${binaryPayload}";
+
+      function decodeBinary(bin) {
+        try {
+          const cleanBytes = bin.trim().split(/\\s+/);
+          if (cleanBytes.length === 0 || cleanBytes[0] === "") return "";
+          const uint8Array = new Uint8Array(cleanBytes.length);
+          for (let i = 0; i < cleanBytes.length; i++) {
+            uint8Array[i] = parseInt(cleanBytes[i], 2);
+          }
+          return new TextDecoder('utf-8').decode(uint8Array);
+        } catch (e) {
+          console.error("Binary decode error:", e);
+          return "";
+        }
+      }
+
+      const decodedHtml = decodeBinary(binaryPayload);
+      
+      // Full document rewrite so scripts and external app.js load properly
+      document.open();
+      document.write(decodedHtml);
+      document.close();
+    })();
+  <\/script>
+</body>
+</html>`;
+
+    document.getElementById('out-html-file').value = fullHtmlTemplate;
+  }
+
+  // 2. Generate JavaScript (app.js) Binary Runner (Fix: DOM Ready-State Auto-Trigger)
+  function generateJsRuntime() {
+    const rawJs = document.getElementById('in-js').value;
+    if (!rawJs.trim()) {
+      alert("Please JavaScript code paste karein!");
+      return;
+    }
+
+    const binaryPayload = toBinary(rawJs);
+
+    const fullJsTemplate = `/**
+ * Standalone Client-Side Binary JavaScript Runner
+ */
+(function () {
+  const binaryPayload = "${binaryPayload}";
+
+  function decodeBinary(bin) {
+    try {
+      const cleanBytes = bin.trim().split(/\\s+/);
+      if (cleanBytes.length === 0 || cleanBytes[0] === "") return "";
+      const uint8Array = new Uint8Array(cleanBytes.length);
+      for (let i = 0; i < cleanBytes.length; i++) {
+        uint8Array[i] = parseInt(cleanBytes[i], 2);
+      }
+      return new TextDecoder('utf-8').decode(uint8Array);
+    } catch (e) {
+      console.error("JS Binary decode error:", e);
+      return "";
+    }
+  }
+
+  function runScript(sourceCode) {
+    if (!sourceCode) return;
+    
+    // Polyfill/Patch for DOMContentLoaded race conditions
+    // If document is already interactive or complete, fire events immediately
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      const inlineFn = new Function(sourceCode);
+      inlineFn();
+      // Dispatch synthetic event in case the original code relied on addEventListener('DOMContentLoaded')
+      window.dispatchEvent(new Event('DOMContentLoaded'));
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+    } else {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.textContent = sourceCode;
+      document.head.appendChild(script);
+    }
+  }
+
+  const decodedJs = decodeBinary(binaryPayload);
+  runScript(decodedJs);
+})();`;
+
+    document.getElementById('out-js-file').value = fullJsTemplate;
+  }
+
+  // Universal Safe Copy Function
+  function copyText(elementId, btn) {
+    const textarea = document.getElementById(elementId);
+    if (!textarea.value) return;
+
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, 9999999);
+
+    let copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } catch (e) {
+      copied = false;
+    }
+
+    if (!copied && navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(textarea.value);
+      copied = true;
+    }
+
+    const originalText = btn.innerText;
+    btn.innerText = "Copied! ✓";
+    setTimeout(() => {
+      btn.innerText = originalText;
+    }, 1600);
+  }
+
+  // Direct File Downloader
+  function downloadBlob(elementId, filename, mimeType) {
+    const content = document.getElementById(elementId).value;
+    if (!content) {
+      alert("Pehle compile karein!");
+      return;
+    }
+    const blob = new Blob([content], { type: mimeType });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }
+</script>
+
+</body>
+</html>
