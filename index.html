@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cyber Binary Generator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #1a1e29, #0a0c10);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #e2e8f0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 580px;
+      background: rgba(22, 27, 34, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 255, 170, 0.05);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 16px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
+
+    .badge {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(0, 255, 170, 0.12);
+      color: #00ffaa;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 255, 170, 0.25);
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      display: block;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    textarea {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 14px;
+      color: #f0f6fc;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: vertical;
+    }
+
+    textarea:focus {
+      border-color: #00ffaa;
+      box-shadow: 0 0 0 3px rgba(0, 255, 170, 0.15);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0 22px 0;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-generate {
+      background: #00ffaa;
+      color: #0d1117;
+    }
+
+    .btn-generate:hover {
+      background: #00dd95;
+      transform: translateY(-1px);
+    }
+
+    .btn-copy {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+    }
+
+    .btn-copy:hover {
+      background: #30363d;
+      color: #fff;
+    }
+
+    .output-container {
+      position: relative;
+    }
+
+    .output-box {
+      background: #090d12;
+      border: 1px solid #21262d;
+      border-radius: 10px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #58a6ff;
+      min-height: 90px;
+      max-height: 200px;
+      overflow-y: auto;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .output-box.empty {
+      color: #484f58;
+      font-style: italic;
+    }
+
+    #copyToast {
+      font-size: 12px;
+      color: #00ffaa;
+      margin-top: 8px;
+      height: 16px;
+      transition: opacity 0.2s;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="title">Binary Converter</div>
+      <div class="badge">UTF-8 Engine</div>
+    </div>
+
+    <label for="inputField">Plain Text Input</label>
+    <textarea id="inputField" rows="3" placeholder="Yahan type karein ya paste karein..."></textarea>
+
+    <div class="btn-group">
+      <button class="btn-generate" onclick="generateBinary()">Generate Code</button>
+      <button class="btn-copy" onclick="copyResult()">Copy Binary</button>
+    </div>
+
+    <label>Binary Stream Output</label>
+    <div class="output-container">
+      <div id="binaryBox" class="output-box empty">Converted 8-bit stream yahan aayega...</div>
+      <div id="copyToast">Copied to clipboard!</div>
+    </div>
+  </div>
+
+  <script>
+    function generateBinary() {
+      const input = document.getElementById("inputField").value;
+      const display = document.getElementById("binaryBox");
+
+      if (!input.trim()) {
+        display.classList.add("empty");
+        display.innerText = "Kripya convert karne ke liye text daalein.";
+        return;
+      }
+
+      display.classList.remove("empty");
+      // Converts characters to standard 8-bit binary
+      display.innerText = input
+        .split('')
+        .map(ch => ch.charCodeAt(0).toString(2).padStart(8, '0'))
+        .join(' ');
+    }
+
+    // Runner-safe copy function (handles iframe security restrictions)
+    function copyResult() {
+      const display = document.getElementById("binaryBox");
+      const toast = document.getElementById("copyToast");
+      const text = display.innerText;
+
+      if (display.classList.contains("empty") || !text) {
+        return;
+      }
+
+      const showToast = () => {
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+      };
+
+      // Method 1: Modern API with error fallback
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(showToast)
+          .catch(() => fallbackCopy(text, showToast));
+      } else {
+        // Method 2: Fallback for restricted iframes / HTML runners
+        fallbackCopy(text, showToast);
+      }
+    }
+
+    function fallbackCopy(text, callback) {
+      const tempArea = document.createElement("textarea");
+      tempArea.value = text;
+      tempArea.style.position = "fixed";
+      tempArea.style.left = "-9999px";
+      document.body.appendChild(tempArea);
+      tempArea.focus();
+      tempArea.select();
+
+      try {
+        document.execCommand("copy");
+        callback();
+      } catch (err) {
+        console.error("Copy failed: ", err);
+      }
+
+      document.body.removeChild(tempArea);
+    }
+  </script>
+
+</body>
+</html>
