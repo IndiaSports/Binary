@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time JavaScript Obfuscator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --surface: #11141d;
+      --surface-hover: #161b27;
+      --border: #1f2638;
+      --border-focus: #3b82f6;
+      --accent: #2563eb;
+      --text: #f1f5f9;
+      --text-muted: #8492a6;
+      --code-bg: #07090e;
+      --success: #10b981;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .brand p {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-top: 0.2rem;
+    }
+
+    .status-group {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    /* Main Grid */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 860px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .editor-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .editor-card:focus-within {
+      border-color: var(--border-focus);
+    }
+
+    .card-header {
+      padding: 0.7rem 1rem;
+      background: rgba(255, 255, 255, 0.015);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header span {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      width: 100%;
+      height: 440px;
+      background: var(--code-bg);
+      border: none;
+      color: #e2e8f0;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      outline: none;
+    }
+
+    .btn:hover {
+      background: var(--surface-hover);
+      border-color: #334155;
+    }
+
+    .btn-success {
+      background: rgba(16, 185, 129, 0.15) !important;
+      border-color: rgba(16, 185, 129, 0.4) !important;
+      color: #34d399 !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="brand">
+      <h1>Real-Time JavaScript Obfuscator</h1>
+      <p>Type ya paste karein — live comments strip aur AST hex obfuscation bina kisi click ke hogi.</p>
+    </div>
+    <div class="status-group">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>Real-Time Active</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- Input Section -->
+    <div class="editor-card">
+      <div class="card-header">
+        <span>Raw JavaScript Input</span>
+        <button class="btn" onclick="loadSample()">Load Sample</button>
+      </div>
+      <textarea id="raw-js" spellcheck="false" placeholder="// Type or paste your JavaScript code here..."></textarea>
+    </div>
+
+    <!-- Output Section -->
+    <div class="editor-card">
+      <div class="card-header">
+        <span>Real-Time Obfuscated Output</span>
+        <button id="copy-btn" class="btn" onclick="copyResult()">Copy Code</button>
+      </div>
+      <textarea id="out-js" readonly spellcheck="false" placeholder="Obfuscated code appears here instantly..."></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+  const rawInput = document.getElementById('raw-js');
+  const outArea = document.getElementById('out-js');
+  let debounceTimer;
+
+  // Real-Time Event Listeners
+  rawInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(processRealtime, 120);
+  });
+
+  function toHex(str) {
+    let result = '';
+    for (let i = 0; i < str.length; i++) {
+      result += '\\x' + str.charCodeAt(i).toString(16).padStart(2, '0');
+    }
+    return result;
+  }
+
+  function cleanComments(source) {
+    return source.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
+  }
+
+  function processRealtime() {
+    let raw = rawInput.value;
+    
+    if (!raw.trim()) {
+      outArea.value = '';
+      return;
+    }
+
+    // Step 1: Strip single & multi-line comments
+    raw = cleanComments(raw);
+
+    // Step 2: Extract literals
+    const stringPool = [];
+    const stringRegex = /(["'`])(?:(?=(\\?))\2[\s\S])*?\1/g;
+
+    let transformed = raw.replace(stringRegex, function(token) {
+      const content = token.slice(1, -1);
+      if (!content) return "''";
+
+      let index = stringPool.indexOf(content);
+      if (index === -1) {
+        stringPool.push(content);
+        index = stringPool.length - 1;
+      }
+      return `_0x2b1c(0x${index.toString(16)})`;
+    });
+
+    // Step 3: Normalize whitespace
+    transformed = transformed.replace(/\n\s*\n/g, '\n').trim();
+
+    // Step 4: Scrambled Hex Array create karna
+    const hexArray = stringPool.map(str => `'${toHex(str)}'`);
+
+    // Step 5: Wrapper IIFE Output
+    const obfuscatedBundle = `(function(){var _0x59a2=[${hexArray.join(',')}];var _0x2b1c=function(_0x1a8f){return _0x59a2[_0x1a8f];};${transformed}})();`;
+
+    outArea.value = obfuscatedBundle;
+  }
+
+  function copyResult() {
+    if (!outArea.value) return;
+
+    outArea.focus();
+    outArea.select();
+    try {
+      document.execCommand('copy');
+    } catch (e) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(outArea.value);
+      }
+    }
+
+    const btn = document.getElementById('copy-btn');
+    const prev = btn.innerText;
+    btn.innerText = "Copied! ✓";
+    btn.classList.add('btn-success');
+    setTimeout(() => {
+      btn.innerText = prev;
+      btn.classList.remove('btn-success');
+    }, 1400);
+  }
+
+  function loadSample() {
+    rawInput.value = `// Wait for DOM to ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Select button
+  const button = document.querySelector('.btn');
+  
+  button.addEventListener('click', (e) => {
+    e.preventDefault();
+    button.classList.add('banana-animate');
+    
+    // Auto reset animation
+    setTimeout(() => {
+      button.classList.remove('banana-animate');
+    }, 500);
+  });
+});`;
+    processRealtime();
+  }
+</script>
+
+</body>
+</html>
