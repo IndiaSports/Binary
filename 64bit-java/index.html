@@ -128,7 +128,7 @@
     }
     textarea {
       width: 100%;
-      height: 440px;
+      height: 460px;
       background: var(--code-bg);
       border: none;
       color: #e2e8f0;
@@ -171,7 +171,7 @@
   <header>
     <div class="brand">
       <h1>Real-Time JavaScript Obfuscator</h1>
-      <p>Clean string extraction, hex encoding aur crash-free IIFE execution.</p>
+      <p>Clean string extraction, Unicode/Hex encoding aur crash-free IIFE execution.</p>
     </div>
     <div class="status-group">
       <div class="status-badge">
@@ -209,62 +209,145 @@
 
   rawInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(processRealtime, 100);
+    debounceTimer = setTimeout(processRealtime, 80);
   });
 
-  // Safe Hex string encoder (Standard JS string literal compliant)
-  function toSafeHex(str) {
-    let hex = '';
+  // Comprehensive Hex and Unicode encoder
+  function toSafeEncoded(str) {
+    let output = '';
     for (let i = 0; i < str.length; i++) {
       const code = str.charCodeAt(i);
-      // Double backslash safe representation
-      hex += '\\x' + code.toString(16).padStart(2, '0');
+      if (code < 128) {
+        output += '\\x' + code.toString(16).padStart(2, '0');
+      } else {
+        output += '\\u' + code.toString(16).padStart(4, '0');
+      }
     }
-    return hex;
+    return output;
   }
 
-  // Safe comment remover
-  function cleanComments(source) {
-    return source.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
+  // Tokenizer-based parser that strips comments and extracts strings safely
+  function transformSource(code) {
+    let output = '';
+    const stringPool = [];
+    let i = 0;
+    const len = code.length;
+
+    while (i < len) {
+      const char = code[i];
+      const next = code[i + 1];
+
+      // 1. Skip Single-line Comments
+      if (char === '/' && next === '/') {
+        i += 2;
+        while (i < len && code[i] !== '\n' && code[i] !== '\r') {
+          i++;
+        }
+        continue;
+      }
+
+      // 2. Skip Multi-line Comments
+      if (char === '/' && next === '*') {
+        i += 2;
+        while (i < len && !(code[i] === '*' && code[i + 1] === '/')) {
+          i++;
+        }
+        i += 2;
+        continue;
+      }
+
+      // 3. Extract Single and Double Quote String Literals
+      if (char === '"' || char === "'") {
+        const quote = char;
+        let strVal = '';
+        i++; // skip opening quote
+
+        while (i < len && code[i] !== quote) {
+          if (code[i] === '\\' && i + 1 < len) {
+            strVal += code[i] + code[i + 1];
+            i += 2;
+          } else {
+            strVal += code[i];
+            i++;
+          }
+        }
+        i++; // skip closing quote
+
+        if (strVal === '') {
+          output += quote + quote;
+        } else {
+          let poolIndex = stringPool.indexOf(strVal);
+          if (poolIndex === -1) {
+            stringPool.push(strVal);
+            poolIndex = stringPool.length - 1;
+          }
+          output += `_0x2b1c(${poolIndex})`;
+        }
+        continue;
+      }
+
+      // 4. Handle Template Literals (Backticks)
+      if (char === '`') {
+        let templateStr = '`';
+        i++; // skip opening backtick
+        let hasExpression = false;
+
+        while (i < len && code[i] !== '`') {
+          if (code[i] === '$' && code[i + 1] === '{') {
+            hasExpression = true;
+          }
+          if (code[i] === '\\' && i + 1 < len) {
+            templateStr += code[i] + code[i + 1];
+            i += 2;
+          } else {
+            templateStr += code[i];
+            i++;
+          }
+        }
+        templateStr += '`';
+        i++; // skip closing backtick
+
+        // Agar expression (${...}) nahi hai toh hi pool me daalo, warna as-is rehne do
+        if (!hasExpression) {
+          const innerVal = templateStr.slice(1, -1);
+          if (innerVal === '') {
+            output += '``';
+          } else {
+            let poolIndex = stringPool.indexOf(innerVal);
+            if (poolIndex === -1) {
+              stringPool.push(innerVal);
+              poolIndex = stringPool.length - 1;
+            }
+            output += `_0x2b1c(${poolIndex})`;
+          }
+        } else {
+          output += templateStr;
+        }
+        continue;
+      }
+
+      // Default: copy character
+      output += char;
+      i++;
+    }
+
+    return { transformed: output, stringPool };
   }
 
   function processRealtime() {
-    let raw = rawInput.value;
+    const raw = rawInput.value;
     if (!raw.trim()) {
       outArea.value = '';
       return;
     }
 
     try {
-      // 1. Comments safai
-      let cleaned = cleanComments(raw);
+      const { transformed, stringPool } = transformSource(raw);
 
-      const stringPool = [];
-      
-      // 2. Safe string literal parser (Double quotes, single quotes, backticks handle karta hai)
-      const stringRegex = /"([^"\\]*(\\.[^"\\]*)*)"|'([^'\\]*(\\.[^'\\]*)*)'|`([^`\\]*(\\.[^`\\]*)*)`/g;
+      // Build safe escaped tokens for the lookup array
+      const hexTokens = stringPool.map(str => `"${toSafeEncoded(str)}"`);
 
-      let transformed = cleaned.replace(stringRegex, function(match) {
-        // String ke actual content ko nikalo (quotes hata kar)
-        const quote = match[0];
-        const inner = match.slice(1, -1);
-
-        if (!inner) return quote + quote;
-
-        let index = stringPool.indexOf(inner);
-        if (index === -1) {
-          stringPool.push(inner);
-          index = stringPool.length - 1;
-        }
-
-        // Safe function lookup call
-        return `_0x2b1c(${index})`;
-      });
-
-      // 3. Hex Array generate karna
-      const hexTokens = stringPool.map(str => `"${toSafeHex(str)}"`);
-
-      // 4. Production-Ready IIFE wrapper (Syntax error proof)
+      // Self-contained, crash-safe IIFE bundle
       const finalBundle = `;(function(){var _0x59a2=[${hexTokens.join(',')}];var _0x2b1c=function(idx){return _0x59a2[idx];};${transformed}\n})();`;
 
       outArea.value = finalBundle;
@@ -295,21 +378,22 @@
   }
 
   function loadSample() {
-    rawInput.value = `// Wait for DOM to ready
-document.addEventListener('DOMContentLoaded', () => {
-  // Select button
-  const button = document.querySelector('.btn');
+    rawInput.value = `// Secure greeting with Unicode & URLs
+const apiEndpoint = "https://api.example.com/v1/auth";
+const welcomeMessage = "नमस्ते! Welcome to the app 🚀";
+
+function authenticateUser(token) {
+  /* Verify token against endpoint */
+  if (!token) {
+    console.warn("Token not provided!");
+    return false;
+  }
   
-  button.addEventListener('click', (e) => {
-    e.preventDefault();
-    button.classList.add('banana-animate');
-    
-    // Auto reset animation
-    setTimeout(() => {
-      button.classList.remove('banana-animate');
-    }, 500);
-  });
-});`;
+  console.log(welcomeMessage);
+  return { status: "active", endpoint: apiEndpoint };
+}
+
+authenticateUser("abc123secret");`;
     processRealtime();
   }
 
