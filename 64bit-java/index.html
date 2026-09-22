@@ -7,6 +7,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Babel standalone AST engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
+
   <style>
     :root {
       --bg: #090a0f;
@@ -21,11 +25,7 @@
       --success: #10b981;
       --radius: 8px;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
       color: var(--text);
@@ -36,14 +36,7 @@
       padding: 3rem 1.5rem;
       line-height: 1.5;
     }
-    .container {
-      width: 100%;
-      max-width: 1120px;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    /* Header */
+    .container { width: 100%; max-width: 1120px; display: flex; flex-direction: column; gap: 1.5rem; }
     header {
       border-bottom: 1px solid var(--border);
       padding-bottom: 1.25rem;
@@ -53,116 +46,37 @@
       flex-wrap: wrap;
       gap: 1rem;
     }
-    .brand h1 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #fff;
-    }
-    .brand p {
-      color: var(--text-muted);
-      font-size: 0.82rem;
-      margin-top: 0.2rem;
-    }
-    .status-group {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
-    }
+    .brand h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+    .brand p { color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem; }
     .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--success);
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      padding: 0.3rem 0.75rem;
-      border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 600;
+      color: var(--success); background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 0.3rem 0.75rem; border-radius: 999px;
     }
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      background: var(--success);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--success);
-    }
-    /* Main Grid */
-    .workspace {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-    @media (max-width: 860px) {
-      .workspace {
-        grid-template-columns: 1fr;
-      }
-    }
+    .status-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); }
+    .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 860px) { .workspace { grid-template-columns: 1fr; } }
     .editor-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transition: border-color 0.2s ease;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      display: flex; flex-direction: column; overflow: hidden; transition: border-color 0.2s ease;
     }
-    .editor-card:focus-within {
-      border-color: var(--border-focus);
-    }
+    .editor-card:focus-within { border-color: var(--border-focus); }
     .card-header {
-      padding: 0.7rem 1rem;
-      background: rgba(255, 255, 255, 0.015);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 0.7rem 1rem; background: rgba(255, 255, 255, 0.015); border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
     }
-    .card-header span {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
+    .card-header span { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
     textarea {
-      width: 100%;
-      height: 460px;
-      background: var(--code-bg);
-      border: none;
-      color: #e2e8f0;
-      padding: 1rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      line-height: 1.6;
-      resize: vertical;
-      outline: none;
+      width: 100%; height: 460px; background: var(--code-bg); border: none; color: #e2e8f0;
+      padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.6; resize: vertical; outline: none;
     }
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.35rem 0.65rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      outline: none;
+      display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.65rem; font-size: 0.75rem;
+      font-weight: 600; border-radius: 5px; cursor: pointer; transition: all 0.15s ease;
+      background: var(--surface); border: 1px solid var(--border); color: var(--text); outline: none;
     }
-    .btn:hover {
-      background: var(--surface-hover);
-      border-color: #334155;
-    }
-    .btn-success {
-      background: rgba(16, 185, 129, 0.15) !important;
-      border-color: rgba(16, 185, 129, 0.4) !important;
-      color: #34d399 !important;
-    }
+    .btn:hover { background: var(--surface-hover); border-color: #334155; }
+    .btn-success { background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.4) !important; color: #34d399 !important; }
   </style>
 </head>
 <body>
@@ -170,19 +84,16 @@
 <div class="container">
   <header>
     <div class="brand">
-      <h1>Real-Time JavaScript Obfuscator</h1>
-      <p>Clean string extraction, Unicode/Hex encoding aur crash-free IIFE execution.</p>
+      <h1>AST-Powered JavaScript Obfuscator</h1>
+      <p>Grammar-safe string extraction, Unicode encoding aur 100% crash-proof bundle.</p>
     </div>
-    <div class="status-group">
-      <div class="status-badge">
-        <span class="status-dot"></span>
-        <span>Real-Time Active</span>
-      </div>
+    <div class="status-badge">
+      <span class="status-dot"></span>
+      <span>Real-Time Active</span>
     </div>
   </header>
 
   <div class="workspace">
-    <!-- Input Section -->
     <div class="editor-card">
       <div class="card-header">
         <span>Raw JavaScript Input</span>
@@ -191,7 +102,6 @@
       <textarea id="raw-js" spellcheck="false" placeholder="// Type or paste your JavaScript code here..."></textarea>
     </div>
 
-    <!-- Output Section -->
     <div class="editor-card">
       <div class="card-header">
         <span>Real-Time Obfuscated Output</span>
@@ -209,10 +119,9 @@
 
   rawInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(processRealtime, 80);
+    debounceTimer = setTimeout(processRealtime, 150);
   });
 
-  // Comprehensive Hex and Unicode encoder
   function toSafeEncoded(str) {
     let output = '';
     for (let i = 0; i < str.length; i++) {
@@ -226,114 +135,6 @@
     return output;
   }
 
-  // Tokenizer-based parser that strips comments and extracts strings safely
-  function transformSource(code) {
-    let output = '';
-    const stringPool = [];
-    let i = 0;
-    const len = code.length;
-
-    while (i < len) {
-      const char = code[i];
-      const next = code[i + 1];
-
-      // 1. Skip Single-line Comments
-      if (char === '/' && next === '/') {
-        i += 2;
-        while (i < len && code[i] !== '\n' && code[i] !== '\r') {
-          i++;
-        }
-        continue;
-      }
-
-      // 2. Skip Multi-line Comments
-      if (char === '/' && next === '*') {
-        i += 2;
-        while (i < len && !(code[i] === '*' && code[i + 1] === '/')) {
-          i++;
-        }
-        i += 2;
-        continue;
-      }
-
-      // 3. Extract Single and Double Quote String Literals
-      if (char === '"' || char === "'") {
-        const quote = char;
-        let strVal = '';
-        i++; // skip opening quote
-
-        while (i < len && code[i] !== quote) {
-          if (code[i] === '\\' && i + 1 < len) {
-            strVal += code[i] + code[i + 1];
-            i += 2;
-          } else {
-            strVal += code[i];
-            i++;
-          }
-        }
-        i++; // skip closing quote
-
-        if (strVal === '') {
-          output += quote + quote;
-        } else {
-          let poolIndex = stringPool.indexOf(strVal);
-          if (poolIndex === -1) {
-            stringPool.push(strVal);
-            poolIndex = stringPool.length - 1;
-          }
-          output += `_0x2b1c(${poolIndex})`;
-        }
-        continue;
-      }
-
-      // 4. Handle Template Literals (Backticks)
-      if (char === '`') {
-        let templateStr = '`';
-        i++; // skip opening backtick
-        let hasExpression = false;
-
-        while (i < len && code[i] !== '`') {
-          if (code[i] === '$' && code[i + 1] === '{') {
-            hasExpression = true;
-          }
-          if (code[i] === '\\' && i + 1 < len) {
-            templateStr += code[i] + code[i + 1];
-            i += 2;
-          } else {
-            templateStr += code[i];
-            i++;
-          }
-        }
-        templateStr += '`';
-        i++; // skip closing backtick
-
-        // Agar expression (${...}) nahi hai toh hi pool me daalo, warna as-is rehne do
-        if (!hasExpression) {
-          const innerVal = templateStr.slice(1, -1);
-          if (innerVal === '') {
-            output += '``';
-          } else {
-            let poolIndex = stringPool.indexOf(innerVal);
-            if (poolIndex === -1) {
-              stringPool.push(innerVal);
-              poolIndex = stringPool.length - 1;
-            }
-            output += `_0x2b1c(${poolIndex})`;
-          }
-        } else {
-          output += templateStr;
-        }
-        continue;
-      }
-
-      // Default: copy character
-      output += char;
-      i++;
-    }
-
-    return { transformed: output, stringPool };
-  }
-
   function processRealtime() {
     const raw = rawInput.value;
     if (!raw.trim()) {
@@ -342,13 +143,49 @@
     }
 
     try {
-      const { transformed, stringPool } = transformSource(raw);
+      const stringPool = [];
 
-      // Build safe escaped tokens for the lookup array
+      // Babel Plugin to safely replace only true string expressions
+      const stringExtractorPlugin = ({ types: t }) => ({
+        visitor: {
+          StringLiteral(path) {
+            // Import aur Export statements ke paths ko touch na karein
+            if (path.parentPath.isImportDeclaration() || path.parentPath.isExportNamedDeclaration()) {
+              return;
+            }
+            // Object keys ko evaluate karein bina syntax break kiye
+            if (path.parentPath.isObjectProperty() && path.parentPath.node.key === path.node) {
+              if (!path.parentPath.node.computed) {
+                path.parentPath.node.computed = true; // Makes { "key": val } -> { [_0x2b1c(0)]: val }
+              }
+            }
+
+            const val = path.node.value;
+            if (!val) return;
+
+            let idx = stringPool.indexOf(val);
+            if (idx === -1) {
+              stringPool.push(val);
+              idx = stringPool.length - 1;
+            }
+
+            path.replaceWith(
+              t.callExpression(t.identifier('_0x2b1c'), [t.numericLiteral(idx)])
+            );
+            path.skip();
+          }
+        }
+      });
+
+      // Transform using Babel AST
+      const result = Babel.transform(raw, {
+        plugins: [stringExtractorPlugin],
+        comments: false,
+        compact: true
+      });
+
       const hexTokens = stringPool.map(str => `"${toSafeEncoded(str)}"`);
-
-      // Self-contained, crash-safe IIFE bundle
-      const finalBundle = `;(function(){var _0x59a2=[${hexTokens.join(',')}];var _0x2b1c=function(idx){return _0x59a2[idx];};${transformed}\n})();`;
+      const finalBundle = `;(function(){var _0x59a2=[${hexTokens.join(',')}];var _0x2b1c=function(i){return _0x59a2[i];};${result.code}\n})();`;
 
       outArea.value = finalBundle;
     } catch (err) {
@@ -358,15 +195,9 @@
 
   function copyResult() {
     if (!outArea.value || outArea.value.startsWith('// Obfuscation Error')) return;
-
     outArea.focus();
     outArea.select();
-    try {
-      navigator.clipboard.writeText(outArea.value);
-    } catch (e) {
-      document.execCommand('copy');
-    }
-
+    navigator.clipboard.writeText(outArea.value);
     const btn = document.getElementById('copy-btn');
     const prev = btn.innerText;
     btn.innerText = "Copied! ✓";
@@ -378,22 +209,17 @@
   }
 
   function loadSample() {
-    rawInput.value = `// Secure greeting with Unicode & URLs
-const apiEndpoint = "https://api.example.com/v1/auth";
-const welcomeMessage = "नमस्ते! Welcome to the app 🚀";
+    rawInput.value = `const config = {
+  "apiUrl": "https://api.example.com",
+  "port": 8080,
+  "status": "ready"
+};
 
-function authenticateUser(token) {
-  /* Verify token against endpoint */
-  if (!token) {
-    console.warn("Token not provided!");
-    return false;
-  }
-  
-  console.log(welcomeMessage);
-  return { status: "active", endpoint: apiEndpoint };
+function runTest(greeting) {
+  console.log(greeting, config["apiUrl"]);
 }
 
-authenticateUser("abc123secret");`;
+runTest("Hello World");`;
     processRealtime();
   }
 
